@@ -1,4 +1,3 @@
-import './../registerpage/register.css'; // Import the CSS file
 import React, { useState } from 'react';
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { toast, ToastContainer } from "react-toastify";
@@ -16,23 +15,45 @@ const RegisterPage = () => {
 
     const navigate = useNavigate();
 
+    // Validate password strength
+    const validatePasswordStrength = (password) => {
+        if (password.length < 6) {
+            return 'Password must be at least 6 characters long.';
+        }
+        if (!/[A-Za-z]/.test(password)) {
+            return 'Password must include at least one letter.';
+        }
+        if (!/\d/.test(password)) {
+            return 'Password must include at least one number.';
+        }
+        if (!/[@$!%*?&]/.test(password)) {
+            return 'Password must include at least one special character.';
+        }
+        return '';
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
+
+        const passwordError = validatePasswordStrength(password);
+        if (passwordError) {
+            toast.error(passwordError);
+            return;
+        }
+
         if (password !== confirmPassword) {
             toast.error("Passwords do not match");
             return;
         }
+
         try {
-            console.log(`Register Attempt - Full Name: ${fullName}, Email: ${email}`);
-            const response = await registerUserApi({ fullName, email, password, confirmPassword });
-            console.log('Register successful', response);
+            const response = await registerUserApi({ fullName, email, password });
             toast.success('Registered successfully!');
             setTimeout(() => {
                 navigate('/login');
-            }, 1000); // Wait for 1 second before redirecting
+            }, 1000);
         } catch (error) {
-            console.error('Registration failed', error);
-            toast.error('Registration failed. Please try again.');
+            toast.error(error.response?.data?.message || 'Registration failed. Please try again.');
         }
     };
 
@@ -47,7 +68,7 @@ const RegisterPage = () => {
     return (
         <div className="d-flex justify-content-center align-items-center vh-100"
             style={{
-                backgroundImage: 'url("/assets/images/background_logo.jpg")', // Update the path as needed
+                backgroundImage: 'url("/assets/images/background_logo.jpg")',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
             }}

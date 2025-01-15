@@ -7,26 +7,32 @@ const path = require('path');
 const fs = require('fs');
 const { promisify } = require('util');
 const unlinkAsync = promisify(fs.unlink);
+const axios = require('axios');
 
 // Register User
 const registerUser = async (req, res) => {
     const { fullName, email, password } = req.body;
 
+    // Password validation regex
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+    if (!passwordRegex.test(password)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Password must be at least 6 characters long and include at least one letter, one number, and one special character.',
+        });
+    }
+
     try {
         const existingUser = await User.findOne({ email: email });
         if (existingUser) {
-            console.error('User already exists');
             return res.status(400).json({
                 success: false,
-                message: 'User already exists'
+                message: 'User already exists',
             });
         }
 
         const randomSalt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(password, randomSalt);
-
-        console.log(`Original Password: ${password}`);
-        console.log(`Hashed Password: ${hashPassword}`);
 
         const newUser = new User({
             fullName: fullName,
@@ -35,16 +41,15 @@ const registerUser = async (req, res) => {
         });
 
         await newUser.save();
-        console.log('Registered successfully!', email);
         res.status(201).json({
             success: true,
-            message: 'Registered successfully'
+            message: 'Registered successfully',
         });
     } catch (error) {
         console.error('Error occurred!', error);
         res.status(500).json({
             success: false,
-            message: 'Internal server error'
+            message: 'Internal server error',
         });
     }
 };
