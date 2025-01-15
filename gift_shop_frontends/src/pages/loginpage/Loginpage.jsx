@@ -4,6 +4,7 @@ import './../loginpage/login.css';
 import { toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
 import { loginUserApi } from './../../apis/Api';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 const Loginpage = () => {
   const [email, setEmail] = useState('');
@@ -12,7 +13,12 @@ const Loginpage = () => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
   const navigate = useNavigate();
+
+  const onCaptchaChange = (token) => {
+    setCaptchaToken(token);
+  };
 
   const validate = () => {
     let isValid = true;
@@ -24,7 +30,13 @@ const Loginpage = () => {
       setPasswordError('Please enter the password');
       isValid = false;
     }
+    if (!captchaToken) {
+      toast.error('Please verify the CAPTCHA');
+      return false;
+    }
+    // return true;
     return isValid;
+
   };
 
   const handleLogin = async (event) => {
@@ -37,6 +49,7 @@ const Loginpage = () => {
     const data = {
       email: email,
       password: password,
+      captchaToken: captchaToken,
     };
 
     console.log("Login Data: ", data);
@@ -109,6 +122,12 @@ const Loginpage = () => {
           </div>
           <div className="d-flex justify-content-end mb-3">
             <a href="/forgot_password" className="text-decoration-none">Forgot password?</a>
+          </div>
+          <div className="mb-3">
+            <ReCAPTCHA
+              sitekey="6LdvAbgqAAAAAJzHc6E2UGeUL9Ms90btkyaGlL4J" // Replace with your reCAPTCHA site key
+              onChange={onCaptchaChange}
+            />
           </div>
           <button onClick={handleLogin} type="submit" className="btn btn-primary w-100">Login</button>
         </form>

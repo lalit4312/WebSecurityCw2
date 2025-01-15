@@ -51,13 +51,44 @@ const registerUser = async (req, res) => {
 
 // Login User
 const loginUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, captchaToken } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password || !captchaToken) {
         console.error('Email or password not provided');
         return res.status(400).json({
             success: false,
             message: 'Please enter all fields'
+        });
+    }
+
+    // Verify CAPTCHA
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY; // Add your reCAPTCHA secret key to your environment variables
+    try {
+        const captchaResponse = await axios.post(
+            `https://www.google.com/recaptcha/api/siteverify`,
+            null,
+            {
+                params: {
+                    secret: secretKey,
+                    response: captchaToken
+                }
+            }
+        );
+
+        if (!captchaResponse.data.success) {
+            console.error('CAPTCHA verification failed:', captchaResponse.data['error-codes']);
+            return res.status(400).json({
+                success: false,
+                message: 'CAPTCHA verification failed'
+            });
+        }
+
+        console.log('CAPTCHA verified successfully');
+    } catch (captchaError) {
+        console.error('Error verifying CAPTCHA:', captchaError);
+        return res.status(500).json({
+            success: false,
+            message: 'Error verifying CAPTCHA'
         });
     }
 
