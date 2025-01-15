@@ -16,5 +16,7 @@ router.get('/get_user/:id', userControllers.getUserDetails)
 router.post('/update_user/:id', authGuard, userControllers.updateUser);
 
 router.post('/update_profile_image/:id', authGuard, userControllers.updateProfileImage);
+router.post('/logout', authGuard, userControllers.logoutUser);
+
 
 module.exports = router;

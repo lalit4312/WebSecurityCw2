@@ -103,4 +103,5 @@ export const bookProductApi = (data) => Api.post('/api/bookings/create', data);
 export const getAllBookingsApi = () => Api.get('/api/bookings/all');
 export const getBookingByIdApi = (id) => Api.get(`/api/bookings/booking/${id}`);
 export const cancelBookingApi = (id) => Api.put(`/api/bookings/cancel/${id}`);
+export const logoutUserApi = () => Api.post('/api/user/logout');
 

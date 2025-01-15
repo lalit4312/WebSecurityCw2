@@ -14,8 +14,6 @@ const registerUser = async (req, res) => {
     const { fullName, email, password } = req.body;
 
     // Password validation regex
-    // const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    // const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
         return res.status(400).json({
@@ -41,7 +39,7 @@ const registerUser = async (req, res) => {
             email,
             password: hashPassword,
             passwordHistory: [{ password: hashPassword }],
-            passwordExpiresAt: Date.now() + 90 * 24 * 60 * 60 * 1000 // 90 days expiry
+            passwordExpiresAt: Date.now() + 90 * 24 * 60 * 60 * 1000 // 15 days expiry
         });
 
         await newUser.save();
@@ -80,12 +78,6 @@ const loginUser = async (req, res) => {
             });
         }
 
-        if (user.passwordExpiresAt < Date.now()) {
-            return res.status(403).json({
-                message: 'Your password has expired. Please reset your password.',
-            });
-        }
-
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             user.failedLoginAttempts += 1;
@@ -101,17 +93,50 @@ const loginUser = async (req, res) => {
         user.lockUntil = null;
         await user.save();
 
-        const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET);
+        const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, {
+            expiresIn: '1h'
+        });
+        // Add token to activeTokens array
+        user.activeTokens.push({ token });
+        await user.save();
+
         res.json({
             success: true,
             message: 'Login successfully.',
             token,
             userData: {
-                id: user._id,
+                _id: user._id, // Ensure _id is included
                 email: user.email,
-                role: user.isAdmin ? 'admin' : 'user', // Add necessary user info
+                fullName: user.fullName,
+                isAdmin: user.isAdmin,
+                profileImage: user.profileImage, // Include other fields if needed
             },
         });
+    } catch (error) {
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
+const logoutUser = async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+        return res.status(400).json({ message: 'Token is missing.' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
+
+        if (!user) {
+            return res.status(400).json({ message: 'User not found.' });
+        }
+
+        // Remove the token from activeTokens
+        user.activeTokens = user.activeTokens.filter((activeToken) => activeToken.token !== token);
+        await user.save();
+
+        res.status(200).json({ message: 'Logout successful.' });
     } catch (error) {
         res.status(500).json({ message: 'Internal server error.' });
     }
@@ -322,5 +347,6 @@ module.exports = {
     verifyOtpAndPassword,
     getUserDetails,
     updateUser,
-    updateProfileImage
+    updateProfileImage,
+    logoutUser
 };

@@ -1,44 +1,57 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { getUserDetails, deletePost, getAllProductsByUserId, updateUserDetails, updateProfileImage } from "../../apis/Api";
-import "./../profilepage/profilepage.css"; 
+import "./../profilepage/profilepage.css";
 import { FaCamera } from "react-icons/fa";
 
 const UserProfile = () => {
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
-  const userId = user._id;
+  const [user, setUser] = useState(() => {
+    // Safely parse user from localStorage
+    const userString = localStorage.getItem("user");
+    return userString ? JSON.parse(userString) : null;
+  });
+
+  // Ensure user._id exists
+  const userId = user?._id;
 
   const [products, setProducts] = useState([]);
-  const [editing, setEditing] = useState(false); 
-  const [profileImage, setProfileImage] = useState(user.profileImage);
-  const [imagePreview, setImagePreview] = useState(profileImage);
-  const [fullName, setFullName] = useState(user.fullName);
-  const [email, setEmail] = useState(user.email);
+  const [editing, setEditing] = useState(false);
+  const [profileImage, setProfileImage] = useState(user?.profileImage || "");
+  const [imagePreview, setImagePreview] = useState(profileImage || "");
+  const [fullName, setFullName] = useState(user?.fullName || "");
+  const [email, setEmail] = useState(user?.email || "");
   const [imageChanged, setImageChanged] = useState(false);
 
   useEffect(() => {
+    if (!userId) {
+      toast.error('User not found. Please log in again.');
+      return;
+    }
     fetchUserDetails();
-    getAllProducts();
-  }, []);
+  }, [userId]);
 
   const fetchUserDetails = () => {
+    if (!userId) return;
     getUserDetails(userId)
       .then((res) => {
         const userData = res.data.userDetails;
         setUser(userData);
-        setProfileImage(userData.profileImage);
         setImagePreview(`http://localhost:8848/profiles/${userData.profileImage}`);
-        setFullName(userData.fullName);
-        setEmail(userData.email);
-        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem('user', JSON.stringify(userData));
       })
       .catch((error) => {
         console.log(error);
-        toast.error("Error fetching user details!");
+        toast.error('Error fetching user details!');
       });
   };
+  if (!userId) {
+    return <p>User not found. Please log in again.</p>;
+  }
+
+
 
   const getAllProducts = () => {
+    if (!userId) return;
     getAllProductsByUserId(userId)
       .then((res) => {
         const approvedProducts = res.data.product.filter(product => product.isApproved);
@@ -76,7 +89,7 @@ const UserProfile = () => {
   };
 
   const handleSaveChanges = () => {
-    const formData = new FormData(); 
+    const formData = new FormData();
     formData.append("fullName", fullName);
     formData.append("email", email);
 
@@ -87,7 +100,7 @@ const UserProfile = () => {
           toast.success("Profile updated successfully!");
           localStorage.setItem("user", JSON.stringify(updatedUser));
           setUser(updatedUser);
-          setEditing(false); 
+          setEditing(false);
         } else {
           toast.error("Error updating profile!");
         }
@@ -99,6 +112,7 @@ const UserProfile = () => {
   };
 
   const handleUpdateImage = () => {
+    if (!userId) return;
     const formData = new FormData();
     formData.append("profileImage", profileImage);
 
@@ -123,9 +137,13 @@ const UserProfile = () => {
 
   const handleCancelEdit = () => {
     setEditing(false);
-    setFullName(user.fullName);
-    setEmail(user.email);
+    setFullName(user?.fullName || "");
+    setEmail(user?.email || "");
   };
+
+  if (!userId) {
+    return <p>User not found. Please log in again.</p>;
+  }
 
   return (
     <div className="profile-page">

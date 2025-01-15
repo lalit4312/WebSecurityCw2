@@ -2,7 +2,7 @@ import './../css/dashboardNavbar.css';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PostPage from '../pages/post/Postpage';
-import { searchApi } from '../apis/Api'; // Import your search API function
+import { searchApi, logoutUserApi } from '../apis/Api'; // Import your search API function
 import { toast } from 'react-toastify';
 
 const DashboardNavbar = ({ onSearch }) => {
@@ -13,11 +13,18 @@ const DashboardNavbar = ({ onSearch }) => {
         window.location.href = '/dashboard';
     };
 
-    // logout function
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate('/login');
+    const handleLogout = async () => {
+        try {
+            await logoutUserApi();
+            localStorage.clear();
+            toast.success("Logged out successfully.");
+            navigate('/login');
+        } catch (error) {
+            console.error("Logout failed:", error);
+            toast.error("Logout failed. Please try again.");
+        }
     };
+
 
     const handleSearchInputChange = (e) => {
         setSearchTerm(e.target.value);
