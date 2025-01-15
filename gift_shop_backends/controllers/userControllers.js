@@ -111,16 +111,38 @@ const loginUser = async (req, res) => {
         console.log(`Provided Password: ${password}`);
         console.log(`Stored Hashed Password: ${user.password}`);
 
+        if (user.lockUntil && user.lockUntil > Date.now()) {
+            return res.status(403).json({
+                success: false,
+                message: `Account locked. Try again after ${new Date(user.lockUntil).toLocaleTimeString()}.`,
+            });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         console.log(`Password Match: ${isMatch}`);
 
         if (!isMatch) {
-            console.error('Invalid password for user:', email);
+            // Increment failed login attempts
+            user.failedLoginAttempts += 1;
+
+            // Lock the account if failed attempts exceed the limit
+            if (user.failedLoginAttempts >= 3) {
+                user.lockUntil = new Date(Date.now() + 5 * 60 * 1000); // Lock for 5 minutes
+                user.failedLoginAttempts = 0; // Reset failed attempts after locking
+            }
+
+            await user.save();
+
             return res.status(400).json({
                 success: false,
-                message: 'Invalid password'
+                message: 'Invalid password. Your account will be locked after 3 unsuccessful attempts.',
             });
         }
+
+        // Reset failed login attempts and lockUntil on successful login
+        user.failedLoginAttempts = 0;
+        user.lockUntil = null;
+        await user.save();
 
         const token = jwt.sign({
             id: user._id,

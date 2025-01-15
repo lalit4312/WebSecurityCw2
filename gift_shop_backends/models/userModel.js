@@ -8,37 +8,54 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   password: {
     type: String,
-    required: true
+    required: true,
   },
   isAdmin: {
     type: Boolean,
-    default: false
+    default: false,
   },
   otpReset: {
     type: Number,
-    default: null
+    default: null,
   },
   otpResetExpires: {
     type: Date,
-    default: null
+    default: null,
   },
   profileImage: {
     type: String,
-    default: null
+    default: null,
   },
-  favorites: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'products' // Must match the model name in productModel.js
-  }],
-  cartItem: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'products' 
-  }]
+  favorites: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'products', // Must match the model name in productModel.js
+    },
+  ],
+  cartItem: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'products',
+    },
+  ],
+  failedLoginAttempts: {
+    type: Number,
+    default: 0, // Starts with zero failed attempts
+  },
+  lockUntil: {
+    type: Date,
+    default: null, // Account is not locked by default
+  },
 });
+
+// Helper method to check if the account is locked
+userSchema.methods.isLocked = function () {
+  return this.lockUntil && this.lockUntil > Date.now();
+};
 
 const User = mongoose.model('User', userSchema);
 
