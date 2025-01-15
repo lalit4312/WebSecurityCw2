@@ -9,17 +9,32 @@ import ReCAPTCHA from 'react-google-recaptcha';
 const Loginpage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(null);
   const navigate = useNavigate();
 
+  // Handle CAPTCHA change
   const onCaptchaChange = (token) => {
     setCaptchaToken(token);
   };
 
+  // Assess password strength
+  const assessPasswordStrength = (password) => {
+    if (password.length < 8) return 'Weak';
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[@$!%*?&]/.test(password);
+
+    if (hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar) return 'Strong';
+    if (hasUpperCase || hasLowerCase) return 'Moderate';
+    return 'Weak';
+  };
+
+  // Validate form fields
   const validate = () => {
     let isValid = true;
     if (email.trim() === '' || !email.includes('@')) {
@@ -34,9 +49,12 @@ const Loginpage = () => {
       toast.error('Please verify the CAPTCHA');
       return false;
     }
-    // return true;
     return isValid;
+  };
 
+  const handlePasswordInput = (password) => {
+    setPassword(password);
+    setPasswordStrength(assessPasswordStrength(password));
   };
 
   const handleLogin = async (event) => {
@@ -47,38 +65,31 @@ const Loginpage = () => {
     }
 
     const data = {
-      email: email,
-      password: password,
-      captchaToken: captchaToken,
+      email,
+      password,
+      captchaToken,
     };
-
-    console.log("Login Data: ", data);
 
     try {
       const res = await loginUserApi(data);
-      console.log("Response Data: ", res.data);
 
-      if (res.data.success === false) {
-        toast.error(res.data.message);
-      } else {
-        toast.success("Login Successfully");
+      if (res.data.success) {
+        toast.success('Login Successfully');
 
-        localStorage.setItem('token', res.data.token);
-        const convertedData = JSON.stringify(res.data.userData);
-        localStorage.setItem('user', convertedData);
+        // Safely set token and user in localStorage
+        localStorage.setItem('token', res.data.token || '');
+        localStorage.setItem('user', JSON.stringify(res.data.userData || {}));
         navigate('/redirect');
+      } else {
+        toast.error(res.data.message);
       }
     } catch (error) {
-      if (error.response) {
-        console.error("Error Response: ", error.response);
-        if (error.response.status === 400) {
-          toast.error("Invalid credentials or missing fields.");
-        } else {
-          toast.error(error.response.data.message || "An error occurred. Please try again later.");
-        }
+      console.error('Login Error:', error.response?.data || error.message);
+
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
       } else {
-        console.error("Error: ", error);
-        toast.error("An error occurred. Please try again later.");
+        toast.error('An error occurred. Please try again.');
       }
     }
   };
@@ -105,21 +116,31 @@ const Loginpage = () => {
           <div className="mb-3 input-group">
             <span className="input-group-text"><FaUser /></span>
             <input
-              onChange={(e) => setEmail(e.target.value)} type="text" className='form-control' placeholder='Enter your Email' />
-            {
-              emailError && <p className="text-danger">{emailError}</p>
-            }
+              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              className='form-control'
+              placeholder='Enter your Email'
+            />
+            {emailError && <p className="text-danger">{emailError}</p>}
           </div>
           <div className="mb-3 input-group">
             <span className="input-group-text"><FaLock /></span>
-            <input onChange={(e) => setPassword(e.target.value)} type={showPassword ? 'text' : 'password'} className='form-control' placeholder='Enter your Password' />
-            {
-              passwordError && <p className="text-danger">{passwordError}</p>
-            }
+            <input
+              onChange={(e) => handlePasswordInput(e.target.value)}
+              type={showPassword ? 'text' : 'password'}
+              className='form-control'
+              placeholder='Enter your Password'
+            />
+            {passwordError && <p className="text-danger">{passwordError}</p>}
             <span className="input-group-text password-toggle-icon" onClick={togglePasswordVisibility}>
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
+          {password && (
+            <div className="text-muted">
+              <strong>Password Strength: {passwordStrength}</strong>
+            </div>
+          )}
           <div className="d-flex justify-content-end mb-3">
             <a href="/forgot_password" className="text-decoration-none">Forgot password?</a>
           </div>

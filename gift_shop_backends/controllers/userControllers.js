@@ -14,20 +14,22 @@ const registerUser = async (req, res) => {
     const { fullName, email, password } = req.body;
 
     // Password validation regex
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+    // const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    // const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
         return res.status(400).json({
             success: false,
-            message: 'Password must be at least 6 characters long and include at least one letter, one number, and one special character.',
+            message: 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
         });
     }
 
     try {
-        const existingUser = await User.findOne({ email: email });
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
-                message: 'User already exists',
+                message: 'User already exists.',
             });
         }
 
@@ -35,81 +37,41 @@ const registerUser = async (req, res) => {
         const hashPassword = await bcrypt.hash(password, randomSalt);
 
         const newUser = new User({
-            fullName: fullName,
-            email: email,
+            fullName,
+            email,
             password: hashPassword,
+            passwordHistory: [{ password: hashPassword }],
+            passwordExpiresAt: Date.now() + 90 * 24 * 60 * 60 * 1000 // 90 days expiry
         });
 
         await newUser.save();
         res.status(201).json({
             success: true,
-            message: 'Registered successfully',
+            message: 'Registered successfully.',
         });
     } catch (error) {
-        console.error('Error occurred!', error);
+        console.error('Error occurred during registration:', error);
         res.status(500).json({
             success: false,
-            message: 'Internal server error',
+            message: 'Internal server error.',
         });
     }
 };
+
 
 // Login User
 const loginUser = async (req, res) => {
     const { email, password, captchaToken } = req.body;
 
     if (!email || !password || !captchaToken) {
-        console.error('Email or password not provided');
-        return res.status(400).json({
-            success: false,
-            message: 'Please enter all fields'
-        });
-    }
-
-    // Verify CAPTCHA
-    const secretKey = process.env.RECAPTCHA_SECRET_KEY; // Add your reCAPTCHA secret key to your environment variables
-    try {
-        const captchaResponse = await axios.post(
-            `https://www.google.com/recaptcha/api/siteverify`,
-            null,
-            {
-                params: {
-                    secret: secretKey,
-                    response: captchaToken
-                }
-            }
-        );
-
-        if (!captchaResponse.data.success) {
-            console.error('CAPTCHA verification failed:', captchaResponse.data['error-codes']);
-            return res.status(400).json({
-                success: false,
-                message: 'CAPTCHA verification failed'
-            });
-        }
-
-        console.log('CAPTCHA verified successfully');
-    } catch (captchaError) {
-        console.error('Error verifying CAPTCHA:', captchaError);
-        return res.status(500).json({
-            success: false,
-            message: 'Error verifying CAPTCHA'
-        });
+        return res.status(400).json({ message: 'Please enter all fields.' });
     }
 
     try {
-        const user = await User.findOne({ email: email });
+        const user = await User.findOne({ email });
         if (!user) {
-            console.error('User not found for email:', email);
-            return res.status(400).json({
-                success: false,
-                message: 'User not found'
-            });
+            return res.status(400).json({ message: 'User not found.' });
         }
-
-        console.log(`Login Attempt - Email: ${email}`);
-        console.log(`Provided Password: ${password}`);
-        console.log(`Stored Hashed Password: ${user.password}`);
 
         if (user.lockUntil && user.lockUntil > Date.now()) {
             return res.status(403).json({
@@ -118,51 +80,43 @@ const loginUser = async (req, res) => {
             });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        console.log(`Password Match: ${isMatch}`);
-
-        if (!isMatch) {
-            // Increment failed login attempts
-            user.failedLoginAttempts += 1;
-
-            // Lock the account if failed attempts exceed the limit
-            if (user.failedLoginAttempts >= 3) {
-                user.lockUntil = new Date(Date.now() + 5 * 60 * 1000); // Lock for 5 minutes
-                user.failedLoginAttempts = 0; // Reset failed attempts after locking
-            }
-
-            await user.save();
-
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid password. Your account will be locked after 3 unsuccessful attempts.',
+        if (user.passwordExpiresAt < Date.now()) {
+            return res.status(403).json({
+                message: 'Your password has expired. Please reset your password.',
             });
         }
 
-        // Reset failed login attempts and lockUntil on successful login
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            user.failedLoginAttempts += 1;
+            if (user.failedLoginAttempts >= 3) {
+                user.lockUntil = Date.now() + 5 * 60 * 1000; // Lock for 5 minutes
+                user.failedLoginAttempts = 0;
+            }
+            await user.save();
+            return res.status(400).json({ message: 'Invalid password.' });
+        }
+
         user.failedLoginAttempts = 0;
         user.lockUntil = null;
         await user.save();
 
-        const token = jwt.sign({
-            id: user._id,
-            isAdmin: user.isAdmin
-        }, process.env.JWT_SECRET);
-
+        const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET);
         res.json({
             success: true,
-            message: "Login Successfully",
-            token: token,
-            userData: user
+            message: 'Login successfully.',
+            token,
+            userData: {
+                id: user._id,
+                email: user.email,
+                role: user.isAdmin ? 'admin' : 'user', // Add necessary user info
+            },
         });
     } catch (error) {
-        console.error('Error during user login:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error'
-        });
+        res.status(500).json({ message: 'Internal server error.' });
     }
 };
+
 
 const getUserDetails = async (req, res) => {
     const userId = req.params.id;
@@ -315,49 +269,51 @@ const forgotPassword = async (req, res) => {
 // Verify OTP and Set New Password
 const verifyOtpAndPassword = async (req, res) => {
     const { email, otp, password } = req.body;
-    console.log(otp)
 
     if (!email || !otp || !password) {
-        return res.status(400).json({ message: 'All fields are required' });
+        return res.status(400).json({ message: 'All fields are required.' });
     }
 
     try {
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ message: 'User not found' });
+            return res.status(400).json({ message: 'User not found.' });
         }
 
         const now = Date.now();
-        const otpResetExpires = user.otpResetExpires.getTime();
-
-        console.log(`Current Time (ms): ${now}`);
-        console.log(`OTP Expiry Time (ms): ${otpResetExpires}`);
-        console.log(`Stored OTP: ${user.otpReset}`);
-        console.log(`Provided OTP: ${otp}`);
-
-        if (user.otpReset != otp) {
-            console.log('Provided OTP does not match stored OTP');
-            return res.status(400).json({ message: 'Invalid OTP' });
+        if (user.otpReset !== otp || user.otpResetExpires < now) {
+            return res.status(400).json({ message: 'Invalid or expired OTP.' });
         }
 
-        if (otpResetExpires < now) {
-            console.log('OTP has expired');
-            return res.status(400).json({ message: 'Expired OTP' });
+        const isPasswordReused = user.passwordHistory.some(
+            (entry) => bcrypt.compareSync(password, entry.password)
+        );
+
+        if (isPasswordReused) {
+            return res.status(400).json({ message: 'New password cannot be the same as any of the last 3 passwords.' });
         }
 
         const randomSalt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(password, randomSalt);
+        const hashPassword = await bcrypt.hash(password, randomSalt);
+
+        user.password = hashPassword;
         user.otpReset = undefined;
         user.otpResetExpires = undefined;
+        user.passwordExpiresAt = Date.now() + 90 * 24 * 60 * 60 * 1000; // Reset password expiry to 90 days
+        user.passwordHistory.push({ password: hashPassword, changedAt: Date.now() });
+
+        if (user.passwordHistory.length > 3) {
+            user.passwordHistory.shift(); // Keep only the last 3 passwords
+        }
+
         await user.save();
-
-        res.status(200).json({ message: 'Password reset successfully' });
-
+        res.status(200).json({ message: 'Password reset successfully.' });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error resetting password:', error);
+        res.status(500).json({ message: 'Server error.' });
     }
 };
+
 
 module.exports = {
     registerUser,

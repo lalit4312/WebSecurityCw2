@@ -4,32 +4,43 @@ import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { registerUserApi } from '../../apis/Api';
 import { useNavigate } from 'react-router-dom';
+import './register.css';
 
 const RegisterPage = () => {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordStrength, setPasswordStrength] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const navigate = useNavigate();
 
-    // Validate password strength
+    // Real-time password strength assessment
+    const assessPasswordStrength = (password) => {
+        if (password.length < 8) return 'Weak';
+        const hasUpperCase = /[A-Z]/.test(password);
+        const hasLowerCase = /[a-z]/.test(password);
+        const hasNumber = /\d/.test(password);
+        const hasSpecialChar = /[@$!%*?&]/.test(password);
+
+        if (hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar) return 'Strong';
+        if (hasUpperCase || hasLowerCase) return 'Moderate';
+        return 'Weak';
+    };
+
     const validatePasswordStrength = (password) => {
-        if (password.length < 6) {
-            return 'Password must be at least 6 characters long.';
-        }
-        if (!/[A-Za-z]/.test(password)) {
-            return 'Password must include at least one letter.';
-        }
-        if (!/\d/.test(password)) {
-            return 'Password must include at least one number.';
-        }
-        if (!/[@$!%*?&]/.test(password)) {
-            return 'Password must include at least one special character.';
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.';
         }
         return '';
+    };
+
+    const handlePasswordInput = (password) => {
+        setPassword(password);
+        setPasswordStrength(assessPasswordStrength(password));
     };
 
     const handleSubmit = async (event) => {
@@ -57,13 +68,8 @@ const RegisterPage = () => {
         }
     };
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword);
-    };
-
-    const toggleConfirmPasswordVisibility = () => {
-        setShowConfirmPassword(!showConfirmPassword);
-    };
+    const togglePasswordVisibility = () => setShowPassword(!showPassword);
+    const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword);
 
     return (
         <div className="d-flex justify-content-center align-items-center vh-100"
@@ -108,13 +114,18 @@ const RegisterPage = () => {
                             className="form-control"
                             placeholder="Password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e) => handlePasswordInput(e.target.value)}
                             required
                         />
                         <span className="input-group-text" onClick={togglePasswordVisibility}>
                             {showPassword ? <FaEyeSlash /> : <FaEye />}
                         </span>
                     </div>
+                    {password && (
+                        <div className="text-muted">
+                            <strong>Password Strength: {passwordStrength}</strong>
+                        </div>
+                    )}
                     <div className="mb-3 input-group">
                         <span className="input-group-text"><FaLock /></span>
                         <input
@@ -142,6 +153,6 @@ const RegisterPage = () => {
             <ToastContainer />
         </div>
     );
-}
+};
 
 export default RegisterPage;

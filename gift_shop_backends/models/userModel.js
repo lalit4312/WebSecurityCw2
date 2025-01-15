@@ -50,6 +50,13 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null, // Account is not locked by default
   },
+  passwordHistory: [
+    {
+      password: String,
+      changedAt: { type: Date, default: Date.now }
+    }
+  ],
+  passwordExpiresAt: { type: Date, default: Date.now }
 });
 
 // Helper method to check if the account is locked

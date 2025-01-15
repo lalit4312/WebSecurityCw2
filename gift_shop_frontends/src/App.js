@@ -85,13 +85,27 @@ const App = () => {
   );
 };
 
+// const RedirectBasedOnRole = () => {
+//   const user = JSON.parse(localStorage.getItem('user'));
+
+//   if (!user) {
+//     return <Navigate to="/login" />;
+//   }
+
+//   return user.isAdmin ? <Navigate to="/admin/dashboard" /> : <Navigate to="/dashboard" />;
+// };
+
 const RedirectBasedOnRole = () => {
-  const user = JSON.parse(localStorage.getItem('user'));
+  // Safely retrieve and parse the user data
+  const userString = localStorage.getItem('user');
+  const user = userString ? JSON.parse(userString) : null;
 
   if (!user) {
+    console.error('RedirectBasedOnRole: No user data found in localStorage.');
     return <Navigate to="/login" />;
   }
 
+  // Check user role and redirect accordingly
   return user.isAdmin ? <Navigate to="/admin/dashboard" /> : <Navigate to="/dashboard" />;
 };
 
