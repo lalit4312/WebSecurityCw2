@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { registerUserApi } from '../../apis/Api';
 import { useNavigate } from 'react-router-dom';
 import './register.css';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 const RegisterPage = () => {
     const [fullName, setFullName] = useState('');
@@ -14,10 +15,14 @@ const RegisterPage = () => {
     const [passwordStrength, setPasswordStrength] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState(null);
 
     const navigate = useNavigate();
 
-    // Real-time password strength assessment
+    const onCaptchaChange = (token) => {
+        setCaptchaToken(token);
+    };
+
     const assessPasswordStrength = (password) => {
         if (password.length < 8) return 'Weak';
         const hasUpperCase = /[A-Z]/.test(password);
@@ -43,8 +48,20 @@ const RegisterPage = () => {
         setPasswordStrength(assessPasswordStrength(password));
     };
 
+    const validate = () => {
+        if (!captchaToken) {
+            toast.error('Please verify the CAPTCHA');
+            return false;
+        }
+        return true;
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
+
+        if (!validate()) {
+            return;
+        }
 
         const passwordError = validatePasswordStrength(password);
         if (passwordError) {
@@ -58,7 +75,7 @@ const RegisterPage = () => {
         }
 
         try {
-            const response = await registerUserApi({ fullName, email, password });
+            const response = await registerUserApi({ fullName, email, password, captchaToken });
             toast.success('Registered successfully!');
             setTimeout(() => {
                 navigate('/login');
@@ -139,6 +156,12 @@ const RegisterPage = () => {
                         <span className="input-group-text" onClick={toggleConfirmPasswordVisibility}>
                             {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                         </span>
+                    </div>
+                    <div className="mb-3">
+                        <ReCAPTCHA
+                            sitekey="6LdvAbgqAAAAAJzHc6E2UGeUL9Ms90btkyaGlL4J" // Replace with your site key
+                            onChange={onCaptchaChange}
+                        />
                     </div>
                     <button type="submit" className="btn btn-primary w-100">Register</button>
                 </form>

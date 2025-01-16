@@ -11,7 +11,7 @@ const axios = require('axios');
 
 // Register User
 const registerUser = async (req, res) => {
-    const { fullName, email, password } = req.body;
+    const { fullName, email, password,captchaToken } = req.body;
 
     // Password validation regex
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -20,6 +20,9 @@ const registerUser = async (req, res) => {
             success: false,
             message: 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
         });
+    }
+    if(!captchaToken){
+        return res.status(400).json({ message: 'Captcha should be included' });
     }
 
     try {
