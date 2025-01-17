@@ -254,12 +254,12 @@ const forgotPassword = async (req, res) => {
             return res.status(400).json({ message: 'User not found' });
         }
 
-        // Generate OTP
+        // if user entered the forgot password then opt is generated
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Set OTP and expiry
+        // sets the limit of the otp expiry
         user.otpReset = otp;
-        user.otpResetExpires = Date.now() + 3600000; // 1 hour expiry
+        user.otpResetExpires = Date.now() + 3600000; 
         await user.save();
 
         // Send email

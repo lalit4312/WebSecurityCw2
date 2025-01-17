@@ -146,7 +146,7 @@ const Loginpage = () => {
           </div>
           <div className="mb-3">
             <ReCAPTCHA
-              sitekey="6LdvAbgqAAAAAJzHc6E2UGeUL9Ms90btkyaGlL4J" // Replace with your reCAPTCHA site key
+              sitekey="6LdvAbgqAAAAAJzHc6E2UGeUL9Ms90btkyaGlL4J"
               onChange={onCaptchaChange}
             />
           </div>

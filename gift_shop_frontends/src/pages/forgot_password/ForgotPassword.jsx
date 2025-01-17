@@ -24,7 +24,7 @@ const ForgotPassword = () => {
             if (error.response && error.response.status === 400) {
                 toast.error(error.response.data.message);
             } else {
-                console.error(error); // Log unexpected errors for debugging
+                console.error(error);
                 toast.error('An unexpected error occurred. Please try again.');
             }
         }
@@ -81,6 +81,7 @@ const ForgotPassword = () => {
                                         placeholder='Enter OTP'
                                     />
                                 </div>
+                                <p>Enter New Password</p>
                                 <div className='form-group11 mt-2'>
                                     <input
                                         onChange={(e) => setPassword(e.target.value)}
@@ -89,6 +90,7 @@ const ForgotPassword = () => {
                                         placeholder='Set New Password'
                                     />
                                 </div>
+
                                 <button onClick={handleVerify} className='btn btn-primary11 mt-2'>
                                     Verify OTP & Set Password
                                 </button>
