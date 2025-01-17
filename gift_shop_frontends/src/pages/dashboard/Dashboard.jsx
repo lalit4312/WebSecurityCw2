@@ -109,7 +109,7 @@ const DashboardPage = () => {
                         <div className="carousel-item active">
                             <img src="/assets/images/customer1.jpg" className="d-block w-100" alt="Slide 1" />
                             <div className="carousel-caption d-none d-md-block">
-                                <h5 className="carousel-caption-text">🎉 Welcome to Gift Bazar 🎉</h5>
+                                <h5 className="carousel-caption-text">🎉 Welcome to Gift Shop 🎉</h5>
                                 <p className="carousel-caption-subtext">Explore the best of artisanal crafts and unique products!</p>
                             </div>
                         </div>

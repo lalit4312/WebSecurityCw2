@@ -32,7 +32,7 @@ export const Navbar = () => {
             <div className="container-fluid">
                 <Link className="navbar-brand d-flex align-items-center" to="/">
                     <img src="/assets/images/website_logo.png" alt="Logo" style={{ maxHeight: '50px' }} />
-                    <span className="navbar-brand-text">Gift Bazar</span>
+                    <span className="navbar-brand-text">Gift Shop</span>
                 </Link>
                 <button className="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span className="navbar-toggler-icon"></span>

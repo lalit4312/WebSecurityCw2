@@ -110,7 +110,7 @@ const Loginpage = () => {
       <div className="card p-4 shadow login-card">
         <div className="text-center mb-4">
           <img src="/assets/images/website_logo.png" alt="Logo" className="logo mb-3" />
-          <h2>Gift Bazar</h2>
+          <h2>Gift Shop</h2>
         </div>
         <form>
           <div className="mb-3 input-group">
