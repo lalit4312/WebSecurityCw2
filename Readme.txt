@@ -7,3 +7,4 @@ Features:
 Features like password security, password encryption, captcha, paymant safty integration, access control,
 hashing, admin approval, User friendly interface, JWT-based authentication
 
+Technology Stack:
