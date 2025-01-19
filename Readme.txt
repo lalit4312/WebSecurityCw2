@@ -54,3 +54,6 @@ JWT_SECRET=your_jwt_secret_key
 5.1 Backend
 npm start
 
+5.2 Frontend
+npm start
+
