@@ -18,3 +18,9 @@ Backend:
 Node.js
 Express.js
 MongoDB
+
+Security Libraries:
+Bcrypt (Password Encryption)
+JSON Web Token (JWT)
+CORS (Cross-Origin Resource Sharing)
+Express-FileUpload (Secure file uploads)
