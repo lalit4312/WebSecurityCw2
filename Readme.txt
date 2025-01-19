@@ -28,3 +28,10 @@ Express-FileUpload (Secure file uploads)
 
 Installation
 Follow these steps to set up the project on your local machine:
+
+Clone the repository:
+Go to your bash and do these things
+git clone https://github.com/lalit4312/WebSecurityCw2.git
+cd WebSecurityCw2
+
+
