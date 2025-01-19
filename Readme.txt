@@ -13,3 +13,8 @@ React.js
 Bootstrap
 CSS
 HTML
+
+Backend:
+Node.js
+Express.js
+MongoDB
