@@ -5,7 +5,7 @@ const User = require('../models/userModel'); // Ensure this import
 // Create a booking
 const createBooking = async (req, res) => {
     const { productId, quantity } = req.body;
-    const userId = req.user.id;  // Assuming user ID is available in req.user
+    const userId = req.user.id;
 
     if (!productId || !quantity) {
         return res.status(400).json({
@@ -52,7 +52,7 @@ const getAllBookings = async (req, res) => {
         const userId = req.user.id;
         console.log("Fetching bookings for userId:", userId);
 
-        // Execute the query and check the result before calling populate
+
         let bookingsQuery = Booking.find({});
 
         if (bookingsQuery) {
@@ -123,7 +123,7 @@ const getBookingByBookingUserId = async (req, res) => {
 // Cancel a booking
 const cancelBooking = async (req, res) => {
     const bookingId = req.params.id;
-    const userId = req.user.id;  // Assuming user ID is available in req.user
+    const userId = req.user.id;
 
     try {
         const booking = await Booking.findById(bookingId);
