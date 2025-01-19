@@ -49,3 +49,8 @@ MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 
 
+5. Start the development server:
+
+5.1 Backend
+npm start
+
