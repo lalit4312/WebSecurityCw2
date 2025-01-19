@@ -38,5 +38,8 @@ cd WebSecurityCw2
 cd backend
 npm install
 
+3. Frontend Setup:
+cd frontend
+npm install
 
 
