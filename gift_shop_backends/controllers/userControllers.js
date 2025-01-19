@@ -11,7 +11,7 @@ const axios = require('axios');
 
 // Register User
 const registerUser = async (req, res) => {
-    const { fullName, email, password,captchaToken } = req.body;
+    const { fullName, email, password, captchaToken } = req.body;
 
     // Password validation regex
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -21,7 +21,7 @@ const registerUser = async (req, res) => {
             message: 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
         });
     }
-    if(!captchaToken){
+    if (!captchaToken) {
         return res.status(400).json({ message: 'Captcha should be included' });
     }
 
@@ -259,7 +259,7 @@ const forgotPassword = async (req, res) => {
 
         // sets the limit of the otp expiry
         user.otpReset = otp;
-        user.otpResetExpires = Date.now() + 3600000; 
+        user.otpResetExpires = Date.now() + 3600000;
         await user.save();
 
         // Send email
