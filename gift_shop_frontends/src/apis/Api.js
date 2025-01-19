@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import logger from "../utils/logger";
 // Creating an instance of axios
 const Api = axios.create({
   baseURL: "http://localhost:8848", // Your backend API URL
@@ -14,10 +14,27 @@ Api.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      logger.info(`Token attached to request: ${config.url}`);
     }
+    logger.info(`API Request: ${config.method.toUpperCase()} ${config.url}`);
     return config;
   },
-  error => Promise.reject(error)
+  error => {
+    logger.error(`API Request Error: ${error.message}`);
+    return Promise.reject(error);
+  }
+);
+
+// Add a response interceptor to log responses
+Api.interceptors.response.use(
+  response => {
+    logger.info(`API Response: ${response.status} - ${response.config.url}`);
+    return response;
+  },
+  error => {
+    logger.error(`API Response Error: ${error.response?.status} - ${error.message}`);
+    return Promise.reject(error);
+  }
 );
 
 

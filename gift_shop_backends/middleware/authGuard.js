@@ -84,6 +84,7 @@
 
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
+const logger = require('../utils/logger');
 
 const authGuard = async (req, res, next) => {
     console.log(req.headers);
@@ -91,6 +92,7 @@ const authGuard = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
+        logger.warn(`Unauthorized access attempt from IP: ${req.ip}`);
         return res.status(400).json({
             success: false,
             message: "Authorization header not found!"
@@ -100,6 +102,7 @@ const authGuard = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
 
     if (!token || token === '') {
+        logger.warn(`Token missing from request IP: ${req.ip}`);
         return res.status(403).json({
             success: false,
             message: "Token is missing"
@@ -113,6 +116,7 @@ const authGuard = async (req, res, next) => {
         const user = await User.findById(decodedUser.id);
 
         if (!user || !user.activeTokens.some((activeToken) => activeToken.token === token)) {
+            logger.warn(`Invalid token attempt by user ID: ${decodedUser.id}`);
             return res.status(401).json({
                 success: false,
                 message: 'Invalid or expired token.'
@@ -123,6 +127,7 @@ const authGuard = async (req, res, next) => {
         next();
     } catch (error) {
         console.error(error);
+        logger.error(`Authentication error: ${error.message}`);
         res.status(400).json({
             success: false,
             message: "Not Authenticated!"
@@ -158,16 +163,19 @@ const adminGuard = async (req, res, next) => {
         const user = await User.findById(decodedUser.id);
 
         if (!user || !user.isAdmin) {
+            logger.warn(`Unauthorized admin access attempt by user ID: ${decodedUser.id}`);
             return res.status(403).json({
                 success: false,
                 message: "Permission denied"
             });
         }
 
-        req.user = user; // Attach the user object to the request
+        req.user = user;
+        logger.info(`Admin authenticated: ${user.email}`);
         next();
     } catch (error) {
         console.error(error);
+        logger.error(`Admin authentication error: ${error.message}`);
         res.status(400).json({
             success: false,
             message: "Not Authenticated!"

@@ -6,6 +6,7 @@ import { registerUserApi } from '../../apis/Api';
 import { useNavigate } from 'react-router-dom';
 import './register.css';
 import ReCAPTCHA from 'react-google-recaptcha';
+import logger from '../../utils/logger';
 
 const RegisterPage = () => {
     const [fullName, setFullName] = useState('');
@@ -60,6 +61,8 @@ const RegisterPage = () => {
         event.preventDefault();
 
         if (!validate()) {
+            toast.error('Please fill all required fields and complete CAPTCHA.');
+            logger.warn('Registration failed: Missing fields.');
             return;
         }
 
@@ -71,16 +74,20 @@ const RegisterPage = () => {
 
         if (password !== confirmPassword) {
             toast.error("Passwords do not match");
+            logger.warn(`Password mismatch for user: ${email}`);
             return;
         }
 
         try {
-            const response = await registerUserApi({ fullName, email, password, captchaToken });
+            logger.info(`Registering new user: ${email}`);
+            await registerUserApi({ fullName, email, password, captchaToken });
             toast.success('Registered successfully!');
             setTimeout(() => {
                 navigate('/login');
             }, 1000);
+            logger.info(`User registered successfully: ${email}`);
         } catch (error) {
+            logger.error(`Registration error for ${email}: ${error.message}`);
             toast.error(error.response?.data?.message || 'Registration failed. Please try again.');
         }
     };

@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
 import { loginUserApi } from './../../apis/Api';
 import ReCAPTCHA from 'react-google-recaptcha';
+import logger from '../../utils/logger';
 
 const Loginpage = () => {
   const [email, setEmail] = useState('');
@@ -18,6 +19,7 @@ const Loginpage = () => {
 
   const onCaptchaChange = (token) => {
     setCaptchaToken(token);
+    logger.info('CAPTCHA verified.');
   };
 
   const assessPasswordStrength = (password) => {
@@ -58,6 +60,7 @@ const Loginpage = () => {
     event.preventDefault();
 
     if (!validate()) {
+      logger.warn('Login attempt with missing fields.');
       return;
     }
 
@@ -68,6 +71,7 @@ const Loginpage = () => {
     };
 
     try {
+      logger.info(`Attempting login for email: ${email}`);
       const res = await loginUserApi(data);
 
       if (res.data.success) {
@@ -78,8 +82,10 @@ const Loginpage = () => {
         navigate('/redirect');
       } else {
         toast.error(res.data.message);
+        logger.warn(`Login failed for user: ${email}`);
       }
     } catch (error) {
+      logger.error(`Login error: ${error.message}`);
       console.error('Login Error:', error.response?.data || error.message);
 
       if (error.response?.data?.message) {

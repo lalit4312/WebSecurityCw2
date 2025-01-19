@@ -8,6 +8,7 @@ const fs = require('fs');
 const { promisify } = require('util');
 const unlinkAsync = promisify(fs.unlink);
 const axios = require('axios');
+const logger = require('../utils/logger');
 
 // Register User
 const registerUser = async (req, res) => {
@@ -28,6 +29,7 @@ const registerUser = async (req, res) => {
     try {
         const existingUser = await User.findOne({ email });
         if (existingUser) {
+            logger.warn(`Registration attempt failed for existing email: ${email}`);
             return res.status(400).json({
                 success: false,
                 message: 'User already exists.',
@@ -46,12 +48,14 @@ const registerUser = async (req, res) => {
         });
 
         await newUser.save();
+        logger.info(`User registered: ${email}`);
         res.status(201).json({
             success: true,
             message: 'Registered successfully.',
         });
     } catch (error) {
         console.error('Error occurred during registration:', error);
+        logger.error(`Registration error: ${error.message}`);
         res.status(500).json({
             success: false,
             message: 'Internal server error.',
@@ -71,10 +75,12 @@ const loginUser = async (req, res) => {
     try {
         const user = await User.findOne({ email });
         if (!user) {
+            logger.warn(`Login failed - user not found: ${email}`);
             return res.status(400).json({ message: 'User not found.' });
         }
 
         if (user.lockUntil && user.lockUntil > Date.now()) {
+            logger.warn(`Invalid login attempt: ${email}`);
             return res.status(403).json({
                 success: false,
                 message: `Account locked. Try again after ${new Date(user.lockUntil).toLocaleTimeString()}.`,
