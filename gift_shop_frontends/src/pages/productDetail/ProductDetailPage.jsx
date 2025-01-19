@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Row, Col, Button, Form } from 'react-bootstrap';
 import Rating from 'react-rating-stars-component';
-import { singleProductApi, addToCartApi, getProductReviewsApi, createReviewApi,bookProductApi } from './../../apis/Api'; // Assuming you have the addToCartApi set up
+import { singleProductApi, addToCartApi, getProductReviewsApi, createReviewApi,bookProductApi } from './../../apis/Api';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import './../productDetail/productDetailPage.css'; // Import the CSS file
+import './../productDetail/productDetailPage.css'; 
 
 const ProductDetailPage = () => {
     const { id } = useParams();
@@ -52,12 +52,12 @@ const ProductDetailPage = () => {
         try {
             const response = await addToCartApi(id);
 
-            console.log('API Response:', response); // Log the full response
+            console.log('API Response:', response); 
 
             if (response.status === 200) {
                 toast.success('Product added to cart!');
             } else {
-                const data = await response.json(); // Ensure you handle the response properly
+                const data = await response.json(); 
                 toast.error(data.message || 'Failed to add product to cart.');
             }
         } catch (error) {
@@ -110,7 +110,7 @@ const ProductDetailPage = () => {
     }
 
     if (!product) {
-        return <p>Product not found</p>; // Ensure this condition handles properly
+        return <p>Product not found</p>; 
     }
 
     return (
