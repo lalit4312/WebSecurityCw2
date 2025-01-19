@@ -42,4 +42,10 @@ npm install
 cd frontend
 npm install
 
+4. Set up environment variables:
+Create a .env file in the backend folder and add the required credentials
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
+
 
