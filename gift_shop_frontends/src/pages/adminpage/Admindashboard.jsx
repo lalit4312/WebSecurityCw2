@@ -34,13 +34,13 @@ const AdminDashboard = () => {
         try {
             const res = await getAllBookingsApi();
             if (res.status === 200) {
-                console.log("Bookings fetched:", res.data.bookings); // Log the full data
+                console.log("Bookings fetched:", res.data.bookings); 
                 setBookings(res.data.bookings);
             } else {
                 toast.error('Failed to fetch bookings');
             }
         } catch (error) {
-            console.error('Error fetching bookings:', error); // Log errors for debugging
+            console.error('Error fetching bookings:', error);
             toast.error('Failed to fetch bookings');
         }
     };
