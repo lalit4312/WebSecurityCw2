@@ -1,0 +1,5 @@
+Introduction:
+The Secure E-commerce Platform is an online market that makes it easier to buy and sell locally made goods like art,
+crafts, and food that are made from scratch. The platform puts security first by using advanced security measures to
+keep users' data and deals safe. This makes sure that both shoppers and sellers can trust the platform.
+
