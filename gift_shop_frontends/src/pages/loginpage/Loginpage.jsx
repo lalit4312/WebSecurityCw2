@@ -16,12 +16,10 @@ const Loginpage = () => {
   const [captchaToken, setCaptchaToken] = useState(null);
   const navigate = useNavigate();
 
-  // Handle CAPTCHA change
   const onCaptchaChange = (token) => {
     setCaptchaToken(token);
   };
 
-  // Assess password strength
   const assessPasswordStrength = (password) => {
     if (password.length < 8) return 'Weak';
     const hasUpperCase = /[A-Z]/.test(password);
@@ -34,7 +32,6 @@ const Loginpage = () => {
     return 'Weak';
   };
 
-  // Validate form fields
   const validate = () => {
     let isValid = true;
     if (email.trim() === '' || !email.includes('@')) {
@@ -76,7 +73,6 @@ const Loginpage = () => {
       if (res.data.success) {
         toast.success('Login Successfully');
 
-        // Safely set token and user in localStorage
         localStorage.setItem('token', res.data.token || '');
         localStorage.setItem('user', JSON.stringify(res.data.userData || {}));
         navigate('/redirect');
