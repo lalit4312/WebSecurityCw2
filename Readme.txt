@@ -8,3 +8,8 @@ Features like password security, password encryption, captcha, paymant safty int
 hashing, admin approval, User friendly interface, JWT-based authentication
 
 Technology Stack:
+Frontend:
+React.js
+Bootstrap
+CSS
+HTML
