@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getFavoritesApi, /**removeFavoriteApi**/ } from '../../apis/Api'; // Import the API function
+import { getFavoritesApi, /**removeFavoriteApi**/ } from '../../apis/Api'; 
 import ProductCard from '../../components/ProductCard';
 
 const FavoritePage = () => {
@@ -10,7 +10,7 @@ const FavoritePage = () => {
             try {
                 const response = await getFavoritesApi();
                 if (response.status === 200) {
-                    setFavoriteItems(response.data.favorites); // Ensure correct data path
+                    setFavoriteItems(response.data.favorites); 
                 } else {
                     console.error('Failed to fetch favorites:', response.data.message);
                 }

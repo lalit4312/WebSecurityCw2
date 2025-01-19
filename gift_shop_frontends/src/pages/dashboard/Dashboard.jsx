@@ -54,7 +54,7 @@ const DashboardPage = () => {
 
     const handleCategoryChange = (category) => {
         setSelectedCategory(category);
-        setCurrentPage(1); // Reset to first page when changing category
+        setCurrentPage(1); 
     };
 
     const renderPaginationItems = () => {
