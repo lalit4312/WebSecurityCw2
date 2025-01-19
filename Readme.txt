@@ -24,3 +24,7 @@ Bcrypt (Password Encryption)
 JSON Web Token (JWT)
 CORS (Cross-Origin Resource Sharing)
 Express-FileUpload (Secure file uploads)
+
+
+Installation
+Follow these steps to set up the project on your local machine:
