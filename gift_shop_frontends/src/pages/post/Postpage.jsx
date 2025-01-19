@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { createProductApi } from '../../apis/Api';
 import { toast } from 'react-toastify';
-// import { Link } from 'react-router-dom';
 import './../post/postpage.css';
 
 const PostPage = () => {
@@ -16,9 +15,7 @@ const PostPage = () => {
     const [productImage, setProductImage] = useState(null)
     const [previewImage, setPreviewImage] = useState(null)
 
-    // function to upload and preview image
     const handleImageUpload = (event) => {
-        //0-file, 1-name, 2-size
         const file = event.target.files[0]
         setProductImage(file)
         setPreviewImage(URL.createObjectURL(file))
@@ -29,7 +26,6 @@ const PostPage = () => {
         console.log(productTitle, productCategory, productDescription, productImage, productPrice, productLocation)
 
 
-        //make a logical form data
         const formData = new FormData();
         formData.append('productTitle', productTitle);
         formData.append('productDescription', productDescription);
@@ -39,11 +35,9 @@ const PostPage = () => {
         formData.append('productImage', productImage);
         formData.append('createdBy', userId)
 
-        //make a api call/request
         createProductApi(formData).then((res) => {
             if (res.status === 201) {
                 toast.success(res.data.message);
-                // getProducts()
             }
             else {
                 toast.error("something went wrong in forntend!")
@@ -53,7 +47,6 @@ const PostPage = () => {
                 if (error.response.status === 400) {
                     toast.error(error.response.data.message)
                 }
-                //space for 401 error
                 else if (error.response.status === 500) {
                     toast.error('Internal server error!')
                 }
