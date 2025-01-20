@@ -9,17 +9,32 @@ const { promisify } = require('util');
 const unlinkAsync = promisify(fs.unlink);
 const axios = require('axios');
 const logger = require('../utils/logger');
+const moment = require('moment');
 
 // Register User
 const registerUser = async (req, res) => {
     const { fullName, email, password, captchaToken } = req.body;
 
-    // Password validation regex
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(password)) {
+    const lengthRegex = /^.{8,}$/;
+    const caseRegex = /^(?=.*[A-Z])(?=.*[a-z]).*$/;
+    const specialCharRegex = /^(?=.*[@$!%*?&]).*$/;
+
+    if (!lengthRegex.test(password)) {
         return res.status(400).json({
             success: false,
-            message: 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
+            message: 'Password must be at least 8 characters long',
+        });
+    }
+    if (!caseRegex.test(password)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Password must have both upper and lower case',
+        });
+    }
+    if (!specialCharRegex.test(password)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Password must have the special character',
         });
     }
     if (!captchaToken) {
@@ -44,7 +59,7 @@ const registerUser = async (req, res) => {
             email,
             password: hashPassword,
             passwordHistory: [{ password: hashPassword }],
-            passwordExpiresAt: Date.now() + 90 * 24 * 60 * 60 * 1000 // 15 days expiry
+            passwordExpiresAt: Date.now() + 90 * 24 * 60 * 60 * 1000
         });
 
         await newUser.save();
@@ -65,6 +80,78 @@ const registerUser = async (req, res) => {
 
 
 // Login User
+// const loginUser = async (req, res) => {
+//     const { email, password, captchaToken } = req.body;
+
+//     if (!email || !password || !captchaToken) {
+//         return res.status(400).json({ message: 'Please enter all fields.' });
+//     }
+
+//     try {
+//         const user = await User.findOne({ email });
+//         if (!user) {
+//             logger.warn(`Login failed - user not found: ${email}`);
+//             return res.status(400).json({ message: 'User not found.' });
+//         }
+
+//         if (user.lockUntil && user.lockUntil > Date.now()) {
+//             logger.warn(`Invalid login attempt: ${email}`);
+//             return res.status(403).json({
+//                 success: false,
+//                 message: `Account locked. Try again after ${new Date(user.lockUntil).toLocaleTimeString()}.`,
+//             });
+//         }
+
+//         const isMatch = await bcrypt.compare(password, user.password);
+//         if (!isMatch) {
+//             user.failedLoginAttempts += 1;
+//             if (user.failedLoginAttempts >= 3) {
+//                 user.lockUntil = Date.now() + 5 * 60 * 1000; // Lock for 5 minutes
+//                 user.failedLoginAttempts = 0;
+//             }
+//             await user.save();
+//             return res.status(400).json({ message: 'Invalid password.' });
+//         }
+
+//         user.failedLoginAttempts = 0;
+//         user.lockUntil = null;
+//         await user.save();
+
+//         const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, {
+//             expiresIn: '1h'
+//         });
+//         // Add token to activeTokens array
+//         user.activeTokens.push({ token });
+//         await user.save();
+
+//         // Check if the password is about to expire within 7 days
+//         const passwordExpiryDate = moment(user.passwordExpiresAt);
+//         const daysRemaining = passwordExpiryDate.diff(moment(), 'days');
+//         let passwordExpiryMessage = '';
+
+//         if (daysRemaining <= 7 && daysRemaining > 0) {
+//             passwordExpiryMessage = `Your password will expire in ${daysRemaining} days. Please update it soon.`;
+//         } else if (daysRemaining <= 0) {
+//             passwordExpiryMessage = 'Your password has expired. Please reset it now.';
+//         }
+
+//         res.json({
+//             success: true,
+//             message: 'Login successfully.',
+//             token,
+//             userData: {
+//                 _id: user._id, // Ensure _id is included
+//                 email: user.email,
+//                 fullName: user.fullName,
+//                 isAdmin: user.isAdmin,
+//                 profileImage: user.profileImage, // Include other fields if needed
+//             },
+//         });
+//     } catch (error) {
+//         res.status(500).json({ message: 'Internal server error.' });
+//     }
+// };
+
 const loginUser = async (req, res) => {
     const { email, password, captchaToken } = req.body;
 
@@ -80,7 +167,6 @@ const loginUser = async (req, res) => {
         }
 
         if (user.lockUntil && user.lockUntil > Date.now()) {
-            logger.warn(`Invalid login attempt: ${email}`);
             return res.status(403).json({
                 success: false,
                 message: `Account locked. Try again after ${new Date(user.lockUntil).toLocaleTimeString()}.`,
@@ -105,21 +191,33 @@ const loginUser = async (req, res) => {
         const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, {
             expiresIn: '1h'
         });
-        // Add token to activeTokens array
+
         user.activeTokens.push({ token });
         await user.save();
+
+        // Check if the password is about to expire within 7 days
+        const passwordExpiryDate = moment(user.passwordExpiresAt);
+        const daysRemaining = passwordExpiryDate.diff(moment(), 'days');
+        let passwordExpiryMessage = '';
+
+        if (daysRemaining <= 7 && daysRemaining > 0) {
+            passwordExpiryMessage = `Your password will expire in ${daysRemaining} days. Please update it soon.`;
+        } else if (daysRemaining <= 0) {
+            passwordExpiryMessage = 'Your password has expired. Please reset it now.';
+        }
 
         res.json({
             success: true,
             message: 'Login successfully.',
             token,
             userData: {
-                _id: user._id, // Ensure _id is included
+                _id: user._id,
                 email: user.email,
                 fullName: user.fullName,
                 isAdmin: user.isAdmin,
-                profileImage: user.profileImage, // Include other fields if needed
+                profileImage: user.profileImage,
             },
+            passwordExpiryMessage, // Include the password expiry message in the response
         });
     } catch (error) {
         res.status(500).json({ message: 'Internal server error.' });
@@ -333,7 +431,8 @@ const verifyOtpAndPassword = async (req, res) => {
         user.password = hashPassword;
         user.otpReset = undefined;
         user.otpResetExpires = undefined;
-        user.passwordExpiresAt = Date.now() + 90 * 24 * 60 * 60 * 1000; // Reset password expiry to 90 days
+        // user.passwordExpiresAt = Date.now() + 90 * 24 * 60 * 60 * 1000;
+        user.passwordExpiresAt = Date.now() + 90 * 24 * 60 * 60 * 1000;
         user.passwordHistory.push({ password: hashPassword, changedAt: Date.now() });
 
         if (user.passwordHistory.length > 3) {

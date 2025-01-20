@@ -77,6 +77,18 @@ const Loginpage = () => {
       if (res.data.success) {
         toast.success('Login Successfully');
 
+        if (res.data.passwordExpiryMessage) {
+          toast.warn(res.data.passwordExpiryMessage, {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+
+        }
+
         localStorage.setItem('token', res.data.token || '');
         localStorage.setItem('user', JSON.stringify(res.data.userData || {}));
         navigate('/redirect');

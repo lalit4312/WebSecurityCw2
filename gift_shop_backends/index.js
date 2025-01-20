@@ -14,6 +14,8 @@ const createReview = require('./routes/productRoute.js')
 const bookingRoute = require('./routes/bookingRoute.js');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
+const morgan = require('morgan')
+const logger = require('./utils/logger.js')
 
 // Load environment variables
 config();
@@ -36,6 +38,15 @@ app.use(mongoSanitize());
 
 app.use(xss());
 
+
+app.use(morgan('combined', {
+    stream: {
+        write: (message) => logger.info(message.trim()) // Log HTTP requests
+    }
+}));
+
+// Log server start
+logger.info("Starting the server...");
 // Set up CORS
 const corsOptions = {
     origin: true,

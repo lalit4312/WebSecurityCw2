@@ -37,9 +37,17 @@ const RegisterPage = () => {
     };
 
     const validatePasswordStrength = (password) => {
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-        if (!passwordRegex.test(password)) {
-            return 'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.';
+        const lengthRegex = /^.{8,}$/;
+        const caseRegex = /^(?=.*[A-Z])(?=.*[a-z]).*$/;
+        const specialCharRegex = /^(?=.*[@$!%*?&]).*$/;
+        if (!lengthRegex.test(password)) {
+            return 'Password must be at least 8 characters long.';
+        }
+        if (!caseRegex.test(password)) {
+            return 'Password must include uppercase, lowercase and number, and special character.';
+        }
+        if (!specialCharRegex.test(password)) {
+            return 'Password must include special character.';
         }
         return '';
     };
