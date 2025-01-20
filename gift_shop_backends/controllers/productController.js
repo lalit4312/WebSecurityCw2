@@ -406,6 +406,7 @@ const searchProducts = async (req, res) => {
     const pageNumber = parseInt(page) || 1;
     const pageSize = parseInt(limit) || 10; // Default page size
     const sortBy = sort || "createdAt"; // Default sort field (use your preferred default)
+    console.log(search);
 
     try {
         let query = {};

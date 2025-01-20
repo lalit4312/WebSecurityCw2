@@ -31,7 +31,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --transformIgnorePatterns \"node_modules/(?!axios)/\"",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "secureBuild": "set \"GENERATE_SOURCEMAP=false\" && react-scripts build",
+    "secureDeploy": "cross-env NODE_ENV=production serve -s build --listen 3000 --ssl-cert ./ssl/localhost.pem --ssl-key ./ssl/localhost-key.pem"
   },
   "eslintConfig": {
     "extends": [

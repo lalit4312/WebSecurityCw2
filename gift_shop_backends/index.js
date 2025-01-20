@@ -1,7 +1,7 @@
 const express = require('express');
 const { json } = require('express');
 const { config } = require('dotenv');
-const connectDB = require('./database/database.js');  // Ensure the file extension .js is included
+const connectDB = require('./database/database.js');
 const cors = require('cors');
 const { registerUser, loginUser } = require('./controllers/userControllers.js');
 const fileUpload = require('express-fileupload');
@@ -12,6 +12,8 @@ const paymentRoute = require('./routes/paymentRoute.js')
 const favoriteRoute = require('./routes/productRoute.js')
 const createReview = require('./routes/productRoute.js')
 const bookingRoute = require('./routes/bookingRoute.js');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 
 // Load environment variables
 config();
@@ -27,6 +29,12 @@ app.use(fileUpload());
 
 // make a public folder accessible to the outside
 app.use(express.static('./public'));
+
+
+app.use(mongoSanitize());
+
+
+app.use(xss());
 
 // Set up CORS
 const corsOptions = {
