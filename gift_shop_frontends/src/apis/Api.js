@@ -1,11 +1,10 @@
 import axios from "axios";
 import logger from "../utils/logger";
-// Creating an instance of axios
 const Api = axios.create({
-  baseURL: "http://localhost:8848", // Your backend API URL
+  baseURL: "http://localhost:8848",
   withCredentials: true,
   headers: {
-    "Content-Type": "multipart/form-data" // Adjust if needed for your backend
+    "Content-Type": "multipart/form-data",
   }
 });
 // Add a request interceptor to include the token
