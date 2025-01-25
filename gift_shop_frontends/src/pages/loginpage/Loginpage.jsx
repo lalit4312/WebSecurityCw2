@@ -12,7 +12,6 @@ const Loginpage = () => {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [passwordStrength, setPasswordStrength] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(null);
   const navigate = useNavigate();
@@ -20,18 +19,6 @@ const Loginpage = () => {
   const onCaptchaChange = (token) => {
     setCaptchaToken(token);
     logger.info('CAPTCHA verified.');
-  };
-
-  const assessPasswordStrength = (password) => {
-    if (password.length < 8) return 'Weak';
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumber = /\d/.test(password);
-    const hasSpecialChar = /[@$!%*?&]/.test(password);
-
-    if (hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar) return 'Strong';
-    if (hasUpperCase || hasLowerCase) return 'Moderate';
-    return 'Weak';
   };
 
   const validate = () => {
@@ -53,7 +40,6 @@ const Loginpage = () => {
 
   const handlePasswordInput = (password) => {
     setPassword(password);
-    setPasswordStrength(assessPasswordStrength(password));
   };
 
   const handleLogin = async (event) => {
@@ -150,11 +136,6 @@ const Loginpage = () => {
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
-          {password && (
-            <div className="text-muted">
-              <strong>Password Strength: {passwordStrength}</strong>
-            </div>
-          )}
           <div className="d-flex justify-content-end mb-3">
             <a href="/forgot_password" className="text-decoration-none">Forgot password?</a>
           </div>

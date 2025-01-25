@@ -1,4 +1,6 @@
 const express = require('express');
+const https = require('https');
+const fs = require('fs');
 const { json } = require('express');
 const { config } = require('dotenv');
 const connectDB = require('./database/database.js');
@@ -17,11 +19,22 @@ const xss = require('xss-clean');
 const morgan = require('morgan')
 const logger = require('./utils/logger.js')
 
+
 // Load environment variables
 config();
 
 // creating and express application
 const app = express();
+
+// const sslOptions = {
+//     key: fs.readFileSync('./ssl/server.key'),
+//     cert: fs.readFileSync('./ssl/server.cert'),
+// };
+
+const sslOptions = {
+    key: fs.readFileSync(path.join(__dirname, 'ssl', 'server.key')),
+    cert: fs.readFileSync(path.join(__dirname, 'ssl', 'server.cert')),
+};
 
 // json config
 app.use(json());
@@ -64,6 +77,9 @@ try {
 }
 
 
+app.get('/', (req, res) => {
+    res.send('Welcome to Gift Shop API!');
+});
 // Routes
 app.post('/register', registerUser);
 app.post('/login', loginUser);
@@ -84,10 +100,14 @@ app.use('/api/favorites', favoriteRoute);
 // Booking route
 app.use('/api/bookings', bookingRoute);
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8848;
 
-app.listen(PORT, () => {
+(sslOptions, app).listen(PORT, () => {
     console.log(`Server is running on PORT ${PORT}`);
 });
+
+// https.createServer(sslOptions, app).listen(PORT, () => {
+//     console.log(`Secure server running on https://localhost:${PORT}`);
+// });
 
 module.exports = app;
